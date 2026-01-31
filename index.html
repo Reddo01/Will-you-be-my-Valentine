@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Will You Be My Valentine? 💖</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      max-width: 360px;
+      width: 90%;
+      height: 420px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-family: 'Pacifico', cursive;
+      color: #ff4d6d;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #444;
+    }
+
+    .buttons {
+      position: relative;
+      flex-grow: 1;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 22px;
+      border-radius: 30px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      position: absolute;
+      transition: transform 0.15s ease;
+    }
+
+    #yesBtn {
+      background: #ff4d6d;
+      color: white;
+      left: 30%;
+      top: 40%;
+    }
+
+    #noBtn {
+      background: #adb5bd;
+      color: #222;
+      right: 10%;
+      bottom: 10%;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .result {
+      justify-content: space-between;
+      animation: fadeIn 0.6s ease;
+    }
+
+    .bottom-btn {
+      position: static;
+      margin-top: auto;
+      align-self: center;
+      background: #ff4d6d;
+      color: white;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .heart {
+      position: absolute;
+      font-size: 18px;
+      animation: floatUp 2s linear forwards;
+    }
+
+    @keyframes floatUp {
+      from { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(-90px); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<audio id="bgMusic" src="careless-whisper.mp3"></audio>
+
+<div class="container">
+
+  <!-- MAIN CARD -->
+  <div class="card" id="mainCard">
+    <h1>Hey 💕</h1>
+    <p>Will you be my Valentine?</p>
+
+    <div class="buttons" id="btnArea">
+      <button id="yesBtn">Yes 💖</button>
+      <button id="noBtn">No 🙄</button>
+    </div>
+  </div>
+
+  <!-- RESULT CARD -->
+  <div class="card hidden result" id="resultCard"></div>
+
+</div>
+
+<script>
+  const yesBtn = document.getElementById("yesBtn");
+  const noBtn = document.getElementById("noBtn");
+  const mainCard = document.getElementById("mainCard");
+  const resultCard = document.getElementById("resultCard");
+  const btnArea = document.getElementById("btnArea");
+  const music = document.getElementById("bgMusic");
+
+  let yesCount = 0;
+  let musicStarted = false;
+
+  const yesTexts = [
+    "Are you sure? 👀",
+    "Think again 😏",
+    "Still trying? 💕",
+    "You really want this 😭",
+    "Okay okay chill 😅"
+  ];
+
+  function startMusic() {
+    if (!musicStarted) {
+      music.currentTime = 160; // 2:40
+      music.volume = 0.6;
+      music.play().catch(()=>{});
+      musicStarted = true;
+    }
+  }
+
+  yesBtn.addEventListener("click", () => {
+    yesCount++;
+    startMusic();
+
+    yesBtn.textContent = yesTexts[yesCount % yesTexts.length];
+    yesBtn.style.transform = `scale(${1 + yesCount * 0.04})`;
+
+    const areaRect = btnArea.getBoundingClientRect();
+    const btnRect = yesBtn.getBoundingClientRect();
+
+    yesBtn.style.left =
+      Math.random() * (areaRect.width - btnRect.width) + "px";
+    yesBtn.style.top =
+      Math.random() * (areaRect.height - btnRect.height) + "px";
+
+    spawnHeart();
+  });
+
+  noBtn.addEventListener("click", () => {
+    mainCard.classList.add("hidden");
+    resultCard.classList.remove("hidden");
+
+    // ❌ No music if No is first click
+    if (yesCount > 0) startMusic();
+
+    if (yesCount === 0) {
+      resultCard.innerHTML = `
+        <h1>😐 Really?</h1>
+        <p>You didn’t even try to click Yes.</p>
+        <p>Cold. Absolutely cold.</p>
+        <button class="bottom-btn" id="retryBtn">
+          Okay okay I’ll try 😒
+        </button>
+      `;
+      document.getElementById("retryBtn").onclick = () => {
+        resultCard.classList.add("hidden");
+        mainCard.classList.remove("hidden");
+      };
+    } else {
+      resultCard.innerHTML = `
+        <h1>I noticed something 👀</h1>
+        <p>
+          You tried to click YES ${yesCount} times —<br>
+          which means you love me ${yesCount} times more than average 💖
+        </p>
+        <button class="bottom-btn" id="finalYes">
+          Be My Valentine 💘
+        </button>
+      `;
+      document.getElementById("finalYes").onclick = finalScreen;
+    }
+  });
+
+  function finalScreen() {
+    resultCard.innerHTML = `
+      <h1>YAY 💘</h1>
+      <p>You’re officially my Valentine 🥰</p>
+      <p>— Reddo ❤️</p>
+    `;
+    spawnHeart(true);
+  }
+
+  function spawnHeart(many = false) {
+    const count = many ? 25 : 1;
+    for (let i = 0; i < count; i++) {
+      const heart = document.createElement("div");
+      heart.className = "heart";
+      heart.textContent = "💖";
+      heart.style.left = Math.random() * 100 + "%";
+      heart.style.top = "85%";
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 2000);
+    }
+  }
+</script>
+
+</body>
+</html>
